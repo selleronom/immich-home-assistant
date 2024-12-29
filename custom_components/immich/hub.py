@@ -12,8 +12,6 @@ from homeassistant.exceptions import HomeAssistantError
 _HEADER_API_KEY = "x-api-key"
 _LOGGER = logging.getLogger(__name__)
 
-_ALLOWED_MIME_TYPES = ["image/png", "image/jpeg"]
-
 
 class ImmichHub:
     """Immich API hub."""
@@ -93,18 +91,12 @@ class ImmichHub:
     async def download_asset(self, asset_id: str) -> bytes | None:
         """Download the asset."""
         try:
-            url = urljoin(self.host, f"/api/assets/{asset_id}/original")
+            url = urljoin(self.host, f"/api/assets/{asset_id}/thumbnail?size=preview")
             headers = {_HEADER_API_KEY: self.api_key}
 
             async with self.session.get(url=url, headers=headers) as response:
                 if response.status != 200:
                     _LOGGER.error("Error from API: status=%d", response.status)
-                    return None
-
-                if response.content_type not in _ALLOWED_MIME_TYPES:
-                    _LOGGER.error(
-                        "MIME type is not supported: %s", response.content_type
-                    )
                     return None
 
                 return await response.read()
