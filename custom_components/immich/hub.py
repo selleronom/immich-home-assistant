@@ -174,6 +174,31 @@ class ImmichHub:
             _LOGGER.error("Error connecting to the API: %s", exception)
             raise CannotConnect from exception
 
+    async def list_memory_lane_images(self) -> list[dict]:
+        """Fetch today's memory lane images."""
+        from datetime import datetime
+
+        date = datetime.now()
+        day = date.day
+        month = date.month
+
+        url = urljoin(self.host, f"/api/assets/memory-lane?day={day}&month={month}")
+        headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
+
+        async with self.session.get(url=url, headers=headers) as response:
+            if response.status != 200:
+                raw_result = await response.text()
+                _LOGGER.error("Error from API: body=%s", raw_result)
+                raise ApiError()
+
+            items: list[dict] = await response.json()
+            assets = []
+            for item in items:
+                for asset in item["assets"]:
+                    if asset.get("type") == "IMAGE":
+                        assets.append(asset)
+            return assets
+
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""

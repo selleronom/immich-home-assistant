@@ -1,10 +1,11 @@
 """Image device for Immich integration."""
+
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
 import logging
 import random
+from datetime import datetime, timedelta
 
 from homeassistant.components.image import ImageEntity
 from homeassistant.config_entries import ConfigEntry
@@ -35,7 +36,12 @@ async def async_setup_entry(
     )
 
     # Create entity for random favorite image
-    async_add_entities([ImmichImageFavorite(hass, hub)])
+    async_add_entities(
+        [
+            ImmichImageFavorite(hass, hub),
+            ImmichImageMemoryLane(hass, hub),
+        ]
+    )
 
     # Create entities for random image from each watched album
     watched_albums = config_entry.options.get(CONF_WATCHED_ALBUMS, [])
@@ -175,3 +181,13 @@ class ImmichImageAlbum(BaseImmichImage):
         return [
             image["id"] for image in await self.hub.list_album_images(self._album_id)
         ]
+
+
+class ImmichImageMemoryLane(BaseImmichImage):
+    """Displays random 'memory lane' images for today."""
+
+    _attr_unique_id = "memory_lane_image"
+    _attr_name = "Immich: Memory Lane"
+
+    async def _refresh_available_asset_ids(self) -> list[str] | None:
+        return [asset["id"] for asset in await self.hub.list_memory_lane_images()]
