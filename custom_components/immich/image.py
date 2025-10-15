@@ -9,11 +9,10 @@ from datetime import datetime, timedelta
 
 from homeassistant.components.image import ImageEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_API_KEY, CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_WATCHED_ALBUMS
+from .const import CONF_WATCHED_ALBUMS, DOMAIN
 from .hub import ImmichHub
 
 SCAN_INTERVAL = timedelta(minutes=5)
@@ -31,9 +30,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Immich image platform."""
 
-    hub = ImmichHub(
-        host=config_entry.data[CONF_HOST], api_key=config_entry.data[CONF_API_KEY]
-    )
+    hub: ImmichHub = hass.data[DOMAIN][config_entry.entry_id]
 
     # Create entity for random favorite image
     async_add_entities(
