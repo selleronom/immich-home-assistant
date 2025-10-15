@@ -4,7 +4,8 @@
       "user": {
         "data": {
           "host": "[%key:common::config_flow::data::host%]",
-          "api_key": "[%key:common::config_flow::data::api_key%]"
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "verify_ssl": "Verify SSL certificate"
         }
       }
     },

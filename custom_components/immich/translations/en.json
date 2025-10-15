@@ -12,7 +12,8 @@
             "user": {
                 "data": {
                     "api_key": "API key",
-                    "host": "Host"
+                    "host": "Host",
+                    "verify_ssl": "Verify SSL certificate"
                 }
             }
         }

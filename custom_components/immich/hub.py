@@ -16,11 +16,12 @@ _LOGGER = logging.getLogger(__name__)
 class ImmichHub:
     """Immich API hub."""
 
-    def __init__(self, host: str, api_key: str) -> None:
+    def __init__(self, host: str, api_key: str, verify_ssl: bool = True) -> None:
         """Initialize."""
         self.host = host
         self.api_key = api_key
-        self.session = aiohttp.ClientSession()  # Create one session
+        connector = aiohttp.TCPConnector(ssl=verify_ssl)
+        self.session = aiohttp.ClientSession(connector=connector)  # Create one session
 
     async def close_session(self) -> None:
         """Close session when done."""

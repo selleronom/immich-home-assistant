@@ -14,7 +14,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 
-from .const import CONF_WATCHED_ALBUMS, DOMAIN
+from .const import CONF_VERIFY_SSL, CONF_WATCHED_ALBUMS, DOMAIN
 from .hub import CannotConnect, ImmichHub, InvalidAuth
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,6 +23,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_API_KEY): str,
+        vol.Optional(CONF_VERIFY_SSL, default=True): bool,
     }
 )
 
@@ -35,8 +36,9 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     url = url_normalize(data[CONF_HOST])
     api_key = data[CONF_API_KEY]
+    verify_ssl = data.get(CONF_VERIFY_SSL, True)
 
-    hub = ImmichHub(host=url, api_key=api_key)
+    hub = ImmichHub(host=url, api_key=api_key, verify_ssl=verify_ssl)
 
     if not await hub.authenticate():
         raise InvalidAuth
@@ -48,7 +50,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     # Return info that you want to store in the config entry.
     return {
         "title": f"{username} @ {clean_hostname}",
-        "data": {CONF_HOST: url, CONF_API_KEY: api_key},
+        "data": {CONF_HOST: url, CONF_API_KEY: api_key, CONF_VERIFY_SSL: verify_ssl},
     }
 
 
@@ -105,7 +107,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         # Get a connection to the hub in order to list the available albums
         url = url_normalize(self.config_entry.data[CONF_HOST])
         api_key = self.config_entry.data[CONF_API_KEY]
-        hub = ImmichHub(host=url, api_key=api_key)
+        verify_ssl = self.config_entry.data.get(CONF_VERIFY_SSL, True)
+        hub = ImmichHub(host=url, api_key=api_key, verify_ssl=verify_ssl)
 
         if not await hub.authenticate():
             raise InvalidAuth

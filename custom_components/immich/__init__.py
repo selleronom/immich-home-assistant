@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, CONF_HOST, Platform
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const import CONF_VERIFY_SSL, DOMAIN
 from .hub import ImmichHub, InvalidAuth
 
 PLATFORMS: list[Platform] = [Platform.IMAGE]
@@ -17,7 +17,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
 
-    hub = ImmichHub(host=entry.data[CONF_HOST], api_key=entry.data[CONF_API_KEY])
+    verify_ssl = entry.data.get(CONF_VERIFY_SSL, True)
+    hub = ImmichHub(
+        host=entry.data[CONF_HOST],
+        api_key=entry.data[CONF_API_KEY],
+        verify_ssl=verify_ssl,
+    )
 
     if not await hub.authenticate():
         raise InvalidAuth
