@@ -30,7 +30,7 @@ class ImmichHub:
     async def authenticate(self) -> bool:
         """Test if we can authenticate with the host."""
         try:
-            url = urljoin(self.host, "/api/auth/validateToken")
+            url = urljoin(self.host, "/auth/validateToken")
             headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
 
             async with self.session.post(url=url, headers=headers) as response:
