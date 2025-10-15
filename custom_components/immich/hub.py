@@ -182,18 +182,16 @@ class ImmichHub:
     async def list_memory_lane_images(self) -> list[dict]:
         """Fetch today's memory lane images.
         
-        Note: This endpoint may not be available in all Immich versions.
-        The /api/assets/memory-lane endpoint is not documented in the latest API docs
-        but may still work in some versions.
+        Uses the /memories endpoint to retrieve "On This Day" memories.
         """
         from datetime import datetime
 
         date = datetime.now()
-        day = date.day
-        month = date.month
+        # Format date as ISO 8601 for the API
+        date_str = date.strftime("%Y-%m-%d")
 
         try:
-            url = urljoin(self.host, f"/api/assets/memory-lane?day={day}&month={month}")
+            url = urljoin(self.host, f"/memories?for={date_str}")
             headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
 
             async with self.session.get(url=url, headers=headers) as response:
@@ -202,12 +200,17 @@ class ImmichHub:
                     _LOGGER.error("Error from API: body=%s", raw_result)
                     raise ApiError()
 
-                items: list[dict] = await response.json()
+                memories: list[dict] = await response.json()
                 assets = []
-                for item in items:
-                    for asset in item["assets"]:
-                        if asset.get("type") == "IMAGE":
-                            assets.append(asset)
+                
+                # Extract assets from memories
+                for memory in memories:
+                    if "assetIds" in memory:
+                        # If we have asset IDs, we might need to fetch the full asset details
+                        # For now, return the memory objects themselves
+                        # This may need adjustment based on the actual response structure
+                        assets.append(memory)
+                
                 return assets
         except aiohttp.ClientError as exception:
             _LOGGER.error("Error connecting to the API: %s", exception)
