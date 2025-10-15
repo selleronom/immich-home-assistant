@@ -109,11 +109,15 @@ class ImmichHub:
         """List all favorite images."""
         try:
             url = urljoin(self.host, "/api/search/metadata")
-            headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
-            data = {"isFavorite": "true"}
+            headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                _HEADER_API_KEY: self.api_key,
+            }
+            json_data = {"isFavorite": True}
 
             async with self.session.post(
-                url=url, headers=headers, data=data
+                url=url, headers=headers, json=json_data
             ) as response:
                 if response.status != 200:
                     raw_result = await response.text()
@@ -176,29 +180,38 @@ class ImmichHub:
             raise CannotConnect from exception
 
     async def list_memory_lane_images(self) -> list[dict]:
-        """Fetch today's memory lane images."""
+        """Fetch today's memory lane images.
+        
+        Note: This endpoint may not be available in all Immich versions.
+        The /api/assets/memory-lane endpoint is not documented in the latest API docs
+        but may still work in some versions.
+        """
         from datetime import datetime
 
         date = datetime.now()
         day = date.day
         month = date.month
 
-        url = urljoin(self.host, f"/api/assets/memory-lane?day={day}&month={month}")
-        headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
+        try:
+            url = urljoin(self.host, f"/api/assets/memory-lane?day={day}&month={month}")
+            headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
 
-        async with self.session.get(url=url, headers=headers) as response:
-            if response.status != 200:
-                raw_result = await response.text()
-                _LOGGER.error("Error from API: body=%s", raw_result)
-                raise ApiError()
+            async with self.session.get(url=url, headers=headers) as response:
+                if response.status != 200:
+                    raw_result = await response.text()
+                    _LOGGER.error("Error from API: body=%s", raw_result)
+                    raise ApiError()
 
-            items: list[dict] = await response.json()
-            assets = []
-            for item in items:
-                for asset in item["assets"]:
-                    if asset.get("type") == "IMAGE":
-                        assets.append(asset)
-            return assets
+                items: list[dict] = await response.json()
+                assets = []
+                for item in items:
+                    for asset in item["assets"]:
+                        if asset.get("type") == "IMAGE":
+                            assets.append(asset)
+                return assets
+        except aiohttp.ClientError as exception:
+            _LOGGER.error("Error connecting to the API: %s", exception)
+            raise CannotConnect from exception
 
 
 class CannotConnect(HomeAssistantError):
