@@ -203,13 +203,13 @@ class ImmichHub:
                 memories: list[dict] = await response.json()
                 assets = []
                 
-                # Extract assets from memories
+                # Extract image assets from all memories
                 for memory in memories:
-                    if "assetIds" in memory:
-                        # If we have asset IDs, we might need to fetch the full asset details
-                        # For now, return the memory objects themselves
-                        # This may need adjustment based on the actual response structure
-                        assets.append(memory)
+                    if "assets" in memory:
+                        for asset in memory["assets"]:
+                            # Filter to only include images (not videos)
+                            if asset.get("type") == "IMAGE":
+                                assets.append(asset)
                 
                 return assets
         except aiohttp.ClientError as exception:
