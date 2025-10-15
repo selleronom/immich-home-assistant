@@ -182,7 +182,7 @@ class ImmichHub:
     async def list_memory_lane_images(self) -> list[dict]:
         """Fetch today's memory lane images.
         
-        Uses the /memories endpoint to retrieve "On This Day" memories.
+        Uses the /api/memories endpoint to retrieve "On This Day" memories.
         """
         from datetime import datetime
 
@@ -191,7 +191,7 @@ class ImmichHub:
         date_str = date.strftime("%Y-%m-%d")
 
         try:
-            url = urljoin(self.host, f"/memories?for={date_str}")
+            url = urljoin(self.host, f"/api/memories?for={date_str}")
             headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
 
             async with self.session.get(url=url, headers=headers) as response:
